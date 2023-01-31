@@ -34,9 +34,9 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
     Label currentActivationButtonLabel;
 
-    private static ObservableList<String> myObservableList = FXCollections.observableArrayList();
-    private static ListView<String> myListView = new ListView<>(myObservableList);
-    private Button removeButton = new Button("Remove");
+    private static ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
+    private static ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
+    private Button hotspotRemoveButton = new Button("Remove");
 
     Stage hotspotSettings;
 
@@ -164,25 +164,25 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             // Convert the int arrays to strings and add them to the ObservableList
             for (int[] array : AutoMouseMover.getPositions()) {
                 String arrayString = "Hotspot: \tX: " + array[0] + "\tY: " + array[1];
-                myObservableList.add(arrayString);
+                hotspotObservableList.add(arrayString);
             }
 
             // Set the ListView to display the ObservableList
-            myListView.setItems(myObservableList);
-            myListView.setCellFactory(TextFieldListCell.forListView());
+            hotspotListView.setItems(hotspotObservableList);
+            hotspotListView.setCellFactory(TextFieldListCell.forListView());
 
             // Add an event listener to the remove button to handle button clicks
-            removeButton.setOnAction(event -> {
-                int selectedIndex = myListView.getSelectionModel().getSelectedIndex();
+            hotspotRemoveButton.setOnAction(event -> {
+                int selectedIndex = hotspotListView.getSelectionModel().getSelectedIndex();
                 if (selectedIndex != -1) {
                     AutoMouseMover.removeSpecific(selectedIndex);
-                    myObservableList.remove(selectedIndex);
+                    hotspotObservableList.remove(selectedIndex);
                 }
             });
 
             VBox layout = new VBox(10);
             layout.setPadding(new Insets(10));
-            layout.getChildren().addAll(myListView, removeButton);
+            layout.getChildren().addAll(hotspotListView, hotspotRemoveButton);
 
             Scene secondScene = new Scene(layout, 230, 100);
             hotspotSettings = new Stage();
@@ -199,13 +199,13 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
     public static void updateHotspotSettings() {
         Platform.runLater(() -> {
-            myObservableList.clear();
+            hotspotObservableList.clear();
             for (int[] array : AutoMouseMover.getPositions()) {
                 String arrayString = "Hotspot: \tX: " + array[0] + "\tY: " + array[1];
-                myObservableList.add(arrayString);
+                hotspotObservableList.add(arrayString);
             }
             // Set the ListView to display the ObservableList
-            myListView.setItems(myObservableList);
+            hotspotListView.setItems(hotspotObservableList);
         });
     }
 
