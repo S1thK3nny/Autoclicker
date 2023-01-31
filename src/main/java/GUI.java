@@ -1,9 +1,13 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -20,15 +24,27 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class GUI extends Application implements NativeKeyListener, NativeMouseListener {
+    boolean hotspotSettingsWindowIsActive = false;
     boolean isWaitingForInput = false;
-    String currentActivationButton = String.valueOf(NativeMouseEvent.BUTTON5);
-    Label currentActivationButtonLabel;
-    String currentButton = "Current Button: ";
+
     Button autoclickerInputButton;
+    Button hotspotSettingsButton;
+
+    int clicksPerSecond = 0;
+
+    Label currentActivationButtonLabel;
+
+    private static ObservableList<String> myObservableList = FXCollections.observableArrayList();
+    private static ListView<String> myListView = new ListView<>(myObservableList);
+    private Button removeButton = new Button("Remove");
+
+    Stage hotspotSettings;
 
     static TextArea chatArea;
 
-    int clicksPerSecond = 0;
+    String currentActivationButton = String.valueOf(NativeMouseEvent.BUTTON5);
+    String currentButton = "Current Button: ";
+
 
     public static void main(String[] args)  {
         Implementer imp = new Implementer();
@@ -114,11 +130,18 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         //End of topPane, start of bottomPane
 
         StackPane bottomPane = new StackPane();
+        bottomPane.setAlignment(Pos.BOTTOM_RIGHT); //We can safely make this bottom right for the button as the chat area takes up the whole pane
 
         chatArea = new TextArea();
         chatArea.setEditable(false);
 
-        bottomPane.getChildren().add(chatArea);
+        hotspotSettingsButton = new Button("Hotspot settings");
+        hotspotSettingsButton.setOnAction(event -> hotSpotSettings());
+        //Adjust the button position to not mess with the scrollbar
+        hotspotSettingsButton.setTranslateX(-17.5);
+        hotspotSettingsButton.setTranslateY(-15.0);
+
+        bottomPane.getChildren().addAll(chatArea, hotspotSettingsButton);
 
         splitPane.getItems().addAll(topPane, bottomPane);
         splitPane.setDividerPosition(0, 0.5);
@@ -134,14 +157,56 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     }
 
     public void hotSpotSettings() {
-        StackPane secondaryLayout = new StackPane();
 
-        Scene secondScene = new Scene(secondaryLayout, 230, 100);
-        Stage hotSpotSettings = new Stage();
+        if(!hotspotSettingsWindowIsActive) {
+            hotspotSettingsWindowIsActive = true;
 
-        hotSpotSettings.setTitle("Hotspot Settings");
-        hotSpotSettings.setScene(secondScene);
-        hotSpotSettings.show();
+            // Convert the int arrays to strings and add them to the ObservableList
+            for (int[] array : AutoMouseMover.getPositions()) {
+                String arrayString = "Hotspot: \tX: " + array[0] + "\tY: " + array[1];
+                myObservableList.add(arrayString);
+            }
+
+            // Set the ListView to display the ObservableList
+            myListView.setItems(myObservableList);
+            myListView.setCellFactory(TextFieldListCell.forListView());
+
+            // Add an event listener to the remove button to handle button clicks
+            removeButton.setOnAction(event -> {
+                int selectedIndex = myListView.getSelectionModel().getSelectedIndex();
+                if (selectedIndex != -1) {
+                    AutoMouseMover.removeSpecific(selectedIndex);
+                    myObservableList.remove(selectedIndex);
+                }
+            });
+
+            VBox layout = new VBox(10);
+            layout.setPadding(new Insets(10));
+            layout.getChildren().addAll(myListView, removeButton);
+
+            Scene secondScene = new Scene(layout, 230, 100);
+            hotspotSettings = new Stage();
+
+            hotspotSettings.setTitle("Hotspot Settings");
+            hotspotSettings.setScene(secondScene);
+            hotspotSettings.show();
+            hotspotSettings.setOnCloseRequest(event -> hotspotSettingsWindowIsActive = false);
+        }
+        else {
+            hotspotSettings.toFront();
+        }
+    }
+
+    public static void updateHotspotSettings() {
+        Platform.runLater(() -> {
+            myObservableList.clear();
+            for (int[] array : AutoMouseMover.getPositions()) {
+                String arrayString = "Hotspot: \tX: " + array[0] + "\tY: " + array[1];
+                myObservableList.add(arrayString);
+            }
+            // Set the ListView to display the ObservableList
+            myListView.setItems(myObservableList);
+        });
     }
 
     private void waitForKeyInput() {
