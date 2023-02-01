@@ -11,6 +11,7 @@ import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -31,6 +32,11 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     Button hotspotSettingsButton;
 
     int clicksPerSecond = 0;
+    int newX = 0;
+    int newY = 0;
+    int position = 0;
+
+    int[] selectedArray = {0, 0};
 
     Label currentActivationButtonLabel;
 
@@ -41,6 +47,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     Stage hotspotSettings;
 
     static TextArea chatArea;
+    static boolean editingHotspot = false; //Need this in case someone tries to remove the hotspots whilst editing one!
 
     String currentActivationButton = String.valueOf(NativeMouseEvent.BUTTON5);
     String currentButton = "Current Button: ";
@@ -156,12 +163,13 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         });
     }
 
-    public void hotSpotSettings() {
 
+
+    public void hotSpotSettings() {
         if(!hotspotSettingsWindowIsActive) {
             hotspotSettingsWindowIsActive = true;
 
-            // Convert the int arrays to strings and add them to the ObservableList
+            // Convert the int arrays to Strings and add them to the ObservableList
             updateHotspotSettings();
             hotspotListView.setCellFactory(TextFieldListCell.forListView());
 
@@ -178,20 +186,35 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             layout.setPadding(new Insets(10));
             layout.getChildren().addAll(hotspotListView, hotspotRemoveButton);
 
-            Scene secondScene = new Scene(layout, 230, 100);
+            Scene secondScene = new Scene(layout, 450, 250);
             hotspotSettings = new Stage();
 
             hotspotSettings.setTitle("Hotspot Settings");
             hotspotSettings.setScene(secondScene);
             hotspotSettings.show();
             hotspotSettings.setOnCloseRequest(event -> hotspotSettingsWindowIsActive = false);
+
+            hotspotListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    int selectedIndex = hotspotListView.getSelectionModel().getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        selectedArray = AutoMouseMover.getArray(selectedIndex);
+                        //Open new modality window
+                        editSpecificHotspot(selectedIndex);
+                    }
+                }
+            });
+
         }
         else {
             hotspotSettings.toFront();
         }
     }
 
+
+
     public static void updateHotspotSettings() {
+        //Do Platform.runLater() or you will get errors due to the thread differences
         Platform.runLater(() -> {
             hotspotObservableList.clear();
             for (int[] array : AutoMouseMover.getPositions()) {
@@ -203,11 +226,105 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         });
     }
 
+
+
+    private void editSpecificHotspot(int selectedIndex) {
+        editingHotspot = true;
+        setNewX(selectedArray[0]);
+        setNewY(selectedArray[1]);
+        StackPane newLayout = new StackPane();
+        Scene specificHotspotScene = new Scene(newLayout, 250, 100);
+        Stage specificHotspotStage = new Stage();
+        specificHotspotStage.setTitle("Edit Hotspot");
+        specificHotspotStage.setScene(specificHotspotScene);
+
+        HBox hbox = new HBox();
+        VBox xList = new VBox();
+        VBox yList = new VBox();
+
+        //Takes care of editing X
+        Label editX = new Label("Edit X:");
+        TextField editXTextField = new TextField();
+        editXTextField.setPromptText("Current: " + selectedArray[0]);
+        xList.getChildren().addAll(editX, editXTextField);
+        editSpecificHotspotTextStuff(editXTextField, selectedArray, 0);
+
+        //Takes care of editing Y
+        Label editY = new Label("Edit Y:");
+        TextField editYTextField = new TextField();
+        editYTextField.setPromptText("Current: " + selectedArray[1]);
+        xList.getChildren().addAll(editY, editYTextField);
+        editSpecificHotspotTextStuff(editYTextField, selectedArray, 1);
+
+        xList.setAlignment(Pos.CENTER);
+        yList.setAlignment(Pos.CENTER);
+
+        hbox.getChildren().addAll(xList, yList);
+        hbox.setAlignment(Pos.CENTER);
+        hbox.setSpacing(5.0);
+
+        newLayout.getChildren().add(hbox);
+
+        // Specifies the modality for new window.
+        specificHotspotStage.initModality(Modality.WINDOW_MODAL);
+        specificHotspotStage.initOwner(hotspotSettings);
+        specificHotspotStage.show();
+
+        specificHotspotStage.setOnCloseRequest(event -> {
+            selectedArray = new int[]{newX, newY};
+            AutoMouseMover.setArray(selectedIndex, selectedArray);
+            updateHotspotSettings();
+            editingHotspot = false;
+        });
+    }
+
+
+
+    public void editSpecificHotspotTextStuff(TextField textField, int[] selectedArray, int arrayPos) {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals("")) {
+                position = Integer.parseInt(newValue);
+                if(arrayPos==0) {
+                    setNewX(position);
+                }
+                else {
+                    setNewY(position);
+                }
+            } else {
+                position = selectedArray[arrayPos];
+            }
+        });
+
+        Pattern pattern = Pattern.compile("\\d{0,4}");
+        TextFormatter<Integer> formatter = new TextFormatter<>(c -> {
+            if (pattern.matcher(c.getControlNewText()).matches() && (c.getControlNewText().isEmpty() || Integer.parseInt(c.getControlNewText()) <= Integer.MAX_VALUE)) {
+                return c;
+            } else {
+                return null;
+            }
+        });
+        textField.setTextFormatter(formatter);
+    }
+
+
+
+    private void setNewX(int pos) {
+        newX = pos;
+    }
+
+    private void setNewY(int pos) {
+        newY = pos;
+    }
+
+
+
     private void waitForKeyInput() {
         autoclickerInputButton.setText("Waiting for input...");
         isWaitingForInput = true;
         autoclickerInputButton.requestFocus();
     }
+
+
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {

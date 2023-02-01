@@ -74,7 +74,7 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
             GUI.chatArea.appendText("Added hotspot:" + "\tX: " + pos[0] + "\tY: " + pos[1] + "\n");
             GUI.updateHotspotSettings();
         }
-        else if(e.getKeyCode() == hotspotRemoveButton) {
+        else if(e.getKeyCode() == hotspotRemoveButton && !GUI.editingHotspot) {
             positions.removeAll(positions);
             GUI.chatArea.appendText("Removed all hotspots!\n");
             GUI.updateHotspotSettings();
@@ -107,6 +107,17 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
         GUI.chatArea.appendText("Removed hotspot:" + "\tX: " + positions.get(i)[0] + "\tY: " + positions.get(i)[1] + "\n");
         positions.remove(i);
         GUI.updateHotspotSettings();
+    }
+
+    public static void setArray(int index, int[] arr) {
+        int oldX = positions.get(index)[0];
+        int oldY = positions.get(index)[1];
+        positions.set(index, arr);
+        GUI.chatArea.appendText("Edited hotspot:" + "\tOld X: " + oldX + "\tOld Y: " + oldY + "\t\tNew X: " + positions.get(index)[0] + "\tNew Y: " + positions.get(index)[1] + "\n");
+    }
+
+    public static int[] getArray(int index) {
+        return positions.get(index);
     }
 
     public static void setAutoMouseMoverAddHotSpotButton(NativeKeyEvent e) {
