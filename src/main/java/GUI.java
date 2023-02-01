@@ -162,13 +162,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             hotspotSettingsWindowIsActive = true;
 
             // Convert the int arrays to strings and add them to the ObservableList
-            for (int[] array : AutoMouseMover.getPositions()) {
-                String arrayString = "Hotspot: \tX: " + array[0] + "\tY: " + array[1];
-                hotspotObservableList.add(arrayString);
-            }
-
-            // Set the ListView to display the ObservableList
-            hotspotListView.setItems(hotspotObservableList);
+            updateHotspotSettings();
             hotspotListView.setCellFactory(TextFieldListCell.forListView());
 
             // Add an event listener to the remove button to handle button clicks

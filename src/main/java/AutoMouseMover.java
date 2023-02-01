@@ -45,7 +45,6 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
 
     public void stopThread() {
         thread = null;
-        positions.removeAll(positions);
     }
 
     @Override
