@@ -10,9 +10,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class Implementer implements NativeMouseInputListener, NativeKeyListener {
-    static int button;
     static boolean runAuto = false;
-    static boolean isMouse = false;
     static Autoclicker theClicker;
     static AutoMouseMover theMover;
 
@@ -28,11 +26,11 @@ public class Implementer implements NativeMouseInputListener, NativeKeyListener 
     }
 
     public void nativeMousePressed(NativeMouseEvent e) {
-        if(e.getButton() == button && runAuto == true && isMouse) {
+        if(e.getButton() == Integer.parseInt(GUI.properties.getProperty("acButton")) && runAuto && Boolean.parseBoolean(GUI.properties.getProperty("isMouse"))) {
             stopThreads();
         }
 
-        else if (e.getButton() == button && isMouse && !runAuto) {
+        else if (e.getButton() == Integer.parseInt(GUI.properties.getProperty("acButton")) && Boolean.parseBoolean(GUI.properties.getProperty("isMouse")) && !runAuto) {
             startThreads();
         }
     }
@@ -69,11 +67,11 @@ public class Implementer implements NativeMouseInputListener, NativeKeyListener 
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
-        if(nativeKeyEvent.getKeyCode() == button && runAuto == true && !isMouse) {
+        if(nativeKeyEvent.getKeyCode() == Integer.parseInt(GUI.properties.getProperty("acButton")) && runAuto && !Boolean.parseBoolean(GUI.properties.getProperty("isMouse"))) {
             stopThreads();
         }
 
-        else if (nativeKeyEvent.getKeyCode() == button && !isMouse && !runAuto) {
+        else if (nativeKeyEvent.getKeyCode() == Integer.parseInt(GUI.properties.getProperty("acButton")) && !Boolean.parseBoolean(GUI.properties.getProperty("isMouse")) && !runAuto) {
             startThreads();
         }
     }
@@ -86,16 +84,6 @@ public class Implementer implements NativeMouseInputListener, NativeKeyListener 
     @Override
     public void nativeKeyTyped(NativeKeyEvent nativeKeyEvent) {
 
-    }
-
-
-
-    public static void setAutoclickerButton(int received) {
-        button = received;
-    }
-
-    public static void setIsMouse(boolean mouse) {
-        isMouse = mouse;
     }
 
     public void stopThreads() {

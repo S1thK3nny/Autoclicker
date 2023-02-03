@@ -75,7 +75,7 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
             GUI.updateHotspotSettings();
         }
         else if(e.getKeyCode() == hotspotRemoveButton && !GUI.editingHotspot) {
-            positions.removeAll(positions);
+            positions.clear();
             GUI.chatArea.appendText("Removed all hotspots!\n");
             GUI.updateHotspotSettings();
         }
@@ -118,13 +118,5 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
 
     public static int[] getArray(int index) {
         return positions.get(index);
-    }
-
-    public static void setAutoMouseMoverAddHotSpotButton(NativeKeyEvent e) {
-        hotspotButton = e.getKeyCode();
-    }
-
-    public static void setAutoMouseMoverRemoveHotSpotButton(NativeKeyEvent e) {
-        hotspotRemoveButton = e.getKeyCode();
     }
 }

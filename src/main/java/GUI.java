@@ -19,6 +19,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
+
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -31,7 +33,6 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     Button autoclickerInputButton;
     Button hotspotSettingsButton;
 
-    int clicksPerSecond = 0;
     int newX = 0;
     int newY = 0;
     int position = 0;
@@ -43,22 +44,22 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     private static ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
     private static ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
     private Button hotspotRemoveButton = new Button("Remove");
+    static Properties properties;
 
     Stage hotspotSettings;
 
     static TextArea chatArea;
     static boolean editingHotspot = false; //Need this in case someone tries to remove the hotspots whilst editing one!
 
-    String currentActivationButton = String.valueOf(NativeMouseEvent.BUTTON5);
+    String currentActivationButton;
     String currentButton = "Current Button: ";
 
 
     public static void main(String[] args)  {
+        properties = PropertySaver.loadProperties();
         Implementer imp = new Implementer();
         imp.start();
         Implementer.runAuto = false;
-        Implementer.setIsMouse(true);
-        Implementer.setAutoclickerButton(NativeMouseEvent.BUTTON5);
 
         launch(args);
 
@@ -89,6 +90,14 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
         autoclickerInputButton = new Button("Change key");
         autoclickerInputButton.setOnAction(event -> waitForKeyInput());
+
+        if(Boolean.parseBoolean(properties.getProperty("isMouse"))) {
+            currentActivationButton = "MB" + properties.getProperty("acButton");
+        }
+        else {
+            currentActivationButton = NativeKeyEvent.getKeyText(Integer.parseInt(properties.getProperty("acButton")));
+        }
+
         currentActivationButtonLabel = new Label(currentButton + currentActivationButton);
 
         topPaneFirstRow.getChildren().addAll(currentActivationButtonLabel, autoclickerInputButton);
@@ -100,7 +109,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         Label pre_CPSText = new Label("1 Click every");
         Label post_CPSText = new Label("milliseconds");
         TextField cps = new TextField();
-        cps.setPromptText("Default: " + Autoclicker.getMilliseconds());
+        cps.setPromptText("Default: " + properties.getProperty("millis"));
 
         //Must be a number and also maximum 10
         Pattern pattern = Pattern.compile("\\d{0,10}");
@@ -116,11 +125,10 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         // Save input as variable
         cps.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.equals("")) {
-                clicksPerSecond = Integer.parseInt(newValue);
+                properties.setProperty("millis", newValue);
             } else {
-                clicksPerSecond = 1;
+                properties.setProperty("millis", String.valueOf(1));
             }
-            Autoclicker.setMilliseconds(clicksPerSecond);
         });
 
         topPaneSecondRow.getChildren().addAll(pre_CPSText, cps, post_CPSText);
@@ -158,6 +166,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(t -> {
+            PropertySaver.saveProperties(properties);
             Platform.exit();
             System.exit(0);
         });
@@ -336,8 +345,8 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             currentActivationButton = NativeKeyEvent.getKeyText(nativeKeyEvent.getKeyCode());
             Platform.runLater(() -> autoclickerInputButton.setText("Change key"));
             Platform.runLater(() -> currentActivationButtonLabel.setText(currentButton + currentActivationButton));
-            Implementer.setIsMouse(false);
-            Implementer.setAutoclickerButton(nativeKeyEvent.getKeyCode());
+            properties.setProperty("isMouse", String.valueOf(false));
+            properties.setProperty("acButton", String.valueOf(nativeKeyEvent.getKeyCode()));
             isWaitingForInput = false;
             Implementer.runAuto = true;
         }
@@ -356,11 +365,11 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     @Override
     public void nativeMouseClicked(NativeMouseEvent nativeMouseEvent) {
         if(isWaitingForInput && nativeMouseEvent.getButton()!=NativeMouseEvent.BUTTON1) {
-            currentActivationButton = String.valueOf(nativeMouseEvent.getButton());
+            currentActivationButton = "MB" + nativeMouseEvent.getButton();
             Platform.runLater(() -> autoclickerInputButton.setText("Change key"));
             Platform.runLater(() -> currentActivationButtonLabel.setText(currentButton + currentActivationButton));
-            Implementer.setIsMouse(true);
-            Implementer.setAutoclickerButton(nativeMouseEvent.getButton());
+            properties.setProperty("isMouse", String.valueOf(true));
+            properties.setProperty("acButton", String.valueOf(nativeMouseEvent.getButton()));
             isWaitingForInput = false;
             Implementer.runAuto = true;
         }

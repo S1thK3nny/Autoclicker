@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 public class Autoclicker extends Thread {
     Robot robot;
     Thread thread;
-    static int milliseconds = 5;
 
     public Autoclicker() {
         LogManager.getLogManager().reset();
@@ -39,18 +38,10 @@ public class Autoclicker extends Thread {
             robot.mousePress(InputEvent.BUTTON1_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_MASK);
             try {
-                Thread.sleep(milliseconds);
+                Thread.sleep(Integer.parseInt(GUI.properties.getProperty("millis")));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static int getMilliseconds() {
-        return milliseconds;
-    }
-
-    public static void setMilliseconds(int ms) {
-        milliseconds = ms;
     }
 }
