@@ -2,6 +2,8 @@ import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
+import org.jnativehook.mouse.NativeMouseEvent;
+import org.jnativehook.mouse.NativeMouseListener;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -9,13 +11,11 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-public class AutoMouseMover extends Thread implements NativeKeyListener {
+public class AutoMouseMover extends Thread implements NativeKeyListener, NativeMouseListener {
     Robot robot;
     Thread thread;
     Point point;
     static ArrayList<int[]> positions = new ArrayList<>();
-    static int hotspotButton;
-    static int hotspotRemoveButton;
 
     public AutoMouseMover() {
         LogManager.getLogManager().reset();
@@ -32,8 +32,7 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
             e.printStackTrace();
         }
         GlobalScreen.addNativeKeyListener(this);
-        hotspotButton = NativeKeyEvent.VC_CONTROL_L;
-        hotspotRemoveButton = NativeKeyEvent.VC_CONTROL_R;
+        GlobalScreen.addNativeMouseListener(this);
     }
 
     public void startThread() {
@@ -66,17 +65,11 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
-        if(e.getKeyCode() == hotspotButton) {
-            point = MouseInfo.getPointerInfo().getLocation();
-            int[] pos = {(int) point.getX(), (int) point.getY()};
-            positions.add(pos);
-            GUI.chatArea.appendText("Added hotspot:" + "\tX: " + pos[0] + "\tY: " + pos[1] + "\n");
-            GUI.updateHotspotSettings();
+        if(e.getKeyCode() == Integer.parseInt(GUI.properties.getProperty("addHotspotButton")) && !Boolean.parseBoolean(GUI.properties.getProperty("isMouseAddHotspot"))) {
+            addHotspot();
         }
-        else if(e.getKeyCode() == hotspotRemoveButton && !GUI.editingHotspot) {
-            positions.clear();
-            GUI.chatArea.appendText("Removed all hotspots!\n");
-            GUI.updateHotspotSettings();
+        else if(e.getKeyCode() == Integer.parseInt(GUI.properties.getProperty("removeHotspotButton")) && !GUI.editingHotspot && !Boolean.parseBoolean(GUI.properties.getProperty("isMouseRemoveHotspot"))) {
+            removeHotspot();
         }
     }
 
@@ -117,5 +110,39 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
 
     public static int[] getArray(int index) {
         return positions.get(index);
+    }
+
+    @Override
+    public void nativeMouseClicked(NativeMouseEvent nativeMouseEvent) {
+
+    }
+
+    @Override
+    public void nativeMousePressed(NativeMouseEvent nativeMouseEvent) {
+        if(nativeMouseEvent.getButton() == Integer.parseInt(GUI.properties.getProperty("addHotspotButton")) && Boolean.parseBoolean(GUI.properties.getProperty("isMouseAddHotspot"))) {
+            addHotspot();
+        }
+        else if(nativeMouseEvent.getButton() == Integer.parseInt(GUI.properties.getProperty("removeHotspotButton")) && !GUI.editingHotspot && Boolean.parseBoolean(GUI.properties.getProperty("isMouseRemoveHotspot"))) {
+            removeHotspot();
+        }
+    }
+
+    @Override
+    public void nativeMouseReleased(NativeMouseEvent nativeMouseEvent) {
+
+    }
+
+    private void addHotspot() {
+        point = MouseInfo.getPointerInfo().getLocation();
+        int[] pos = {(int) point.getX(), (int) point.getY()};
+        positions.add(pos);
+        GUI.chatArea.appendText("Added hotspot:" + "\tX: " + pos[0] + "\tY: " + pos[1] + "\n");
+        GUI.updateHotspotSettings();
+    }
+
+    private void removeHotspot() {
+        positions.clear();
+        GUI.chatArea.appendText("Removed all hotspots!\n");
+        GUI.updateHotspotSettings();
     }
 }

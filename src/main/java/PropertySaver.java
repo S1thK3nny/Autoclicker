@@ -15,6 +15,8 @@ public class PropertySaver extends Properties{
     private static final int DEFAULT_MOVEINBETWEENTIME = 25;
     private static final int DEFAULT_ADDHOTSPOTBUTTON = 29;
     private static final int DEFAULT_REMOVEHOTSPOTBUTTON = 3613;
+    private static final boolean DEFAULT_ISMOUSEADDHOTSPOT = false;
+    private static final boolean DEFAULT_ISMOUSEREMOVEHOTSPOT = false;
 
     public static Properties loadProperties() {
         Properties properties = new Properties();
@@ -33,6 +35,8 @@ public class PropertySaver extends Properties{
             properties.setProperty("moveInBetweenTime", String.valueOf(DEFAULT_MOVEINBETWEENTIME));
             properties.setProperty("addHotspotButton", String.valueOf(DEFAULT_ADDHOTSPOTBUTTON));
             properties.setProperty("removeHotspotButton", String.valueOf(DEFAULT_REMOVEHOTSPOTBUTTON));
+            properties.setProperty("isMouseAddHotspot", String.valueOf(DEFAULT_ISMOUSEADDHOTSPOT));
+            properties.setProperty("isMouseRemoveHotspot", String.valueOf(DEFAULT_ISMOUSEREMOVEHOTSPOT));
             saveProperties(properties);
         }
         return properties;

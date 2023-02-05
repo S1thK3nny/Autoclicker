@@ -30,8 +30,8 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     boolean hotspotSettingsWindowIsActive = false;
     boolean isWaitingForInput = false;
 
-    Button autoclickerInputButton;
     Button hotspotSettingsButton;
+    Button tempButton;
 
     int newX = 0;
     int newY = 0;
@@ -39,20 +39,21 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
     int[] selectedArray = {0, 0};
 
-    Label currentActivationButtonLabel;
+    Label tempPreButtonLabel;
 
     private static final ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
     private static final ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
     private final Button hotspotRemoveButton = new Button("Remove");
-    static Properties properties;
 
     Stage hotspotSettings;
 
-    static TextArea chatArea;
     static boolean editingHotspot = false; //Need this in case someone tries to remove the hotspots whilst editing one!
+    static Properties properties;
+    static TextArea chatArea;
 
     String currentActivationButton;
-    String currentButton = "Current Button: ";
+    String tempKeyProperty;
+    String tempPreButtonText;
 
 
     public static void main(String[] args)  {
@@ -88,13 +89,13 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         splitPaneTop.setOrientation(Orientation.HORIZONTAL);
 
         VBox topPaneLeftVBox = new VBox();
-        HBox topPaneLeftFirstRow = new HBox();
+        HBox topPaneLeftFirstRow;
         HBox topPaneLeftSecondRow;
         Label titleAC = new Label("Auto Clicker");
 
         VBox topPaneRightVBox = new VBox();
-        HBox topPaneRightFirstRow = new HBox();
-        HBox topPaneRightSecondRow = new HBox();
+        HBox topPaneRightFirstRow;
+        HBox topPaneRightSecondRow;
         HBox topPaneRightThirdRow;
         HBox topPaneRightFourthRow;
         Label titleAMM = new Label("Auto Mouse Mover");
@@ -109,21 +110,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         titleAC.setAlignment(Pos.CENTER);
 
         //AC Input button
-        autoclickerInputButton = new Button("Change key");
-        autoclickerInputButton.setOnAction(event -> waitForKeyInput());
-
-        if(Boolean.parseBoolean(properties.getProperty("isMouse"))) {
-            currentActivationButton = "MB" + properties.getProperty("acButton");
-        }
-        else {
-            currentActivationButton = NativeKeyEvent.getKeyText(Integer.parseInt(properties.getProperty("acButton")));
-        }
-
-        currentActivationButtonLabel = new Label(currentButton + currentActivationButton);
-
-        topPaneLeftFirstRow.getChildren().addAll(currentActivationButtonLabel, autoclickerInputButton);
-        topPaneLeftFirstRow.setAlignment(Pos.CENTER);
-        topPaneLeftFirstRow.setSpacing(10);
+        topPaneLeftFirstRow = textAndButton("Activate with: ", "acButton", "isMouse");
 
         //CPS
         topPaneLeftSecondRow = textAndNumInput("1 Click every", "milliseconds", "millis");
@@ -141,10 +128,12 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         titleAMM.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         titleAMM.setAlignment(Pos.CENTER);
 
+        topPaneRightFirstRow = textAndButton("Add hotspot with: ", "addHotspotButton", "isMouseAddHotspot");
+        topPaneRightSecondRow = textAndButton("Remove hotspot with: ", "removeHotspotButton", "isMouseRemoveHotspot");
         topPaneRightThirdRow = textAndNumInput("Move every", "milliseconds", "moveTime");
         topPaneRightFourthRow = textAndNumInput("Delay of", "milliseconds between moving", "moveInBetweenTime");
 
-        topPaneRightVBox.getChildren().addAll(titleAMM, topPaneRightThirdRow, topPaneRightFourthRow);
+        topPaneRightVBox.getChildren().addAll(titleAMM, topPaneRightFirstRow, topPaneRightSecondRow, topPaneRightThirdRow, topPaneRightFourthRow);
         topPaneRightVBox.setAlignment(Pos.CENTER);
         topPaneRightVBox.setSpacing(7);
 
@@ -193,7 +182,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
 
 
-    public HBox textAndNumInput(String pre, String post, String property) {
+    private HBox textAndNumInput(String pre, String post, String property) {
         HBox hbox = new HBox();
         Label preText = new Label(pre);
         Label postText = new Label(post);
@@ -223,6 +212,41 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         hbox.getChildren().addAll(preText, textField, postText);
         hbox.setAlignment(Pos.CENTER);
         hbox.setSpacing(5);
+        return hbox;
+    }
+
+
+
+    private HBox textAndButton(String preText, String keyProperty, String isMouseProperty) {
+        HBox hbox = new HBox();
+
+
+        if(Boolean.parseBoolean(properties.getProperty(isMouseProperty))) {
+            currentActivationButton = "MB" + properties.getProperty(keyProperty);
+        }
+        else {
+            currentActivationButton = NativeKeyEvent.getKeyText(Integer.parseInt(properties.getProperty(keyProperty)));
+        }
+
+        Label preButtonLabel = new Label(preText + currentActivationButton);
+
+        Button button = new Button("Change key");
+        button.setOnAction(event -> {
+            if(!isWaitingForInput) {
+                isWaitingForInput = true;
+                button.setText("Waiting for input...");
+                button.requestFocus();
+                tempButton = button;
+                tempKeyProperty = keyProperty;
+                tempPreButtonLabel = preButtonLabel;
+                tempPreButtonText = preText;
+            }
+        });
+
+        hbox.getChildren().addAll(preButtonLabel, button);
+        hbox.setAlignment(Pos.CENTER);
+        hbox.setSpacing(10);
+
         return hbox;
     }
 
@@ -381,28 +405,31 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
 
 
-    private void waitForKeyInput() {
-        autoclickerInputButton.setText("Waiting for input...");
-        isWaitingForInput = true;
-        autoclickerInputButton.requestFocus();
-    }
-
-
-
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
         if(isWaitingForInput && nativeKeyEvent.getKeyCode()== NativeKeyEvent.VC_ESCAPE) {
-            Platform.runLater(() -> autoclickerInputButton.setText("Change key"));
+            Platform.runLater(() -> tempButton.setText("Change key"));
             isWaitingForInput = false;
         }
         else if(isWaitingForInput && nativeKeyEvent.getKeyCode()!= NativeKeyEvent.VC_ESCAPE) {
+
             currentActivationButton = NativeKeyEvent.getKeyText(nativeKeyEvent.getKeyCode());
-            Platform.runLater(() -> autoclickerInputButton.setText("Change key"));
-            Platform.runLater(() -> currentActivationButtonLabel.setText(currentButton + currentActivationButton));
-            properties.setProperty("isMouse", String.valueOf(false));
-            properties.setProperty("acButton", String.valueOf(nativeKeyEvent.getKeyCode()));
+
             isWaitingForInput = false;
-            Implementer.runAuto = true;
+
+            switch (tempKeyProperty) {
+                case "acButton" -> {
+                    Implementer.runAuto = true;
+                    properties.setProperty("isMouse", String.valueOf(false));
+                }
+                case "addHotspotButton" -> properties.setProperty("isMouseAddHotspot", String.valueOf(false));
+                case "removeHotspotButton" -> properties.setProperty("isMouseRemoveHotspot", String.valueOf(false));
+            }
+
+            properties.setProperty(tempKeyProperty, String.valueOf(nativeKeyEvent.getKeyCode()));
+            Platform.runLater(() -> tempButton.setText("Change key"));
+            Platform.runLater(() -> tempPreButtonLabel.setText(tempPreButtonText + currentActivationButton));
+
         }
     }
 
@@ -420,12 +447,20 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     public void nativeMouseClicked(NativeMouseEvent nativeMouseEvent) {
         if(isWaitingForInput && nativeMouseEvent.getButton()!=NativeMouseEvent.BUTTON1) {
             currentActivationButton = "MB" + nativeMouseEvent.getButton();
-            Platform.runLater(() -> autoclickerInputButton.setText("Change key"));
-            Platform.runLater(() -> currentActivationButtonLabel.setText(currentButton + currentActivationButton));
-            properties.setProperty("isMouse", String.valueOf(true));
-            properties.setProperty("acButton", String.valueOf(nativeMouseEvent.getButton()));
+
             isWaitingForInput = false;
-            Implementer.runAuto = true;
+            switch (tempKeyProperty) {
+                case "acButton" -> {
+                    Implementer.runAuto = true;
+                    properties.setProperty("isMouse", String.valueOf(true));
+                }
+                case "addHotspotButton" -> properties.setProperty("isMouseAddHotspot", String.valueOf(true));
+                case "removeHotspotButton" -> properties.setProperty("isMouseRemoveHotspot", String.valueOf(true));
+            }
+
+            properties.setProperty(tempKeyProperty, String.valueOf(nativeMouseEvent.getButton()));
+            Platform.runLater(() -> tempButton.setText("Change key"));
+            Platform.runLater(() -> tempPreButtonLabel.setText(tempPreButtonText + currentActivationButton));
         }
     }
 
