@@ -50,7 +50,7 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
     @Override
     public void run() {
         while(thread != null) {
-            sleep(5000);
+            sleep(Integer.parseInt(GUI.properties.getProperty("moveTime")));
             if(positions.size()>0) {
                 Point point_old = MouseInfo.getPointerInfo().getLocation();
                 int x_old = (int) point_old.getX();
@@ -59,7 +59,6 @@ public class AutoMouseMover extends Thread implements NativeKeyListener {
                     robot.mouseMove(arr[0], arr[1]);
                     sleep(25);
                 }
-                sleep(50);
                 robot.mouseMove(x_old, y_old);
             }
         }

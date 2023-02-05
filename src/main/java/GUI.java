@@ -8,9 +8,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldListCell;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
@@ -41,9 +42,9 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
     Label currentActivationButtonLabel;
 
-    private static ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
-    private static ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
-    private Button hotspotRemoveButton = new Button("Remove");
+    private static final ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
+    private static final ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
+    private final Button hotspotRemoveButton = new Button("Remove");
     static Properties properties;
 
     Stage hotspotSettings;
@@ -82,12 +83,31 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         SplitPane splitPane = new SplitPane();
         splitPane.setOrientation(Orientation.VERTICAL);
 
-        VBox topPaneBox = new VBox();
-        HBox topPaneFirstRow = new HBox();
-        HBox topPaneSecondRow = new HBox();
+        //Top pane stuff start
+        HBox topPaneBox = new HBox();
+
+        VBox topPaneLeftVBox = new VBox();
+        HBox topPaneLeftFirstRow = new HBox();
+        HBox topPaneLeftSecondRow;
+        Label titleAC = new Label("Auto Clicker");
+
+        VBox topPaneRightVBox = new VBox();
+        HBox topPaneRightFirstRow = new HBox();
+        HBox topPaneRightSecondRow = new HBox();
+        HBox topPaneRightThirdRow;
+        HBox topPaneRightFourthRow = new HBox();
+        Label titleAMM = new Label("Auto Mouse Mover");
+
+        //Top pane stuff stop
+
+
+        //Top pane left stuff start
+
+        titleAC.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        titleAC.setTextFill(Color.BLUE);
+        titleAC.setAlignment(Pos.CENTER);
 
         //AC Input button
-
         autoclickerInputButton = new Button("Change key");
         autoclickerInputButton.setOnAction(event -> waitForKeyInput());
 
@@ -100,46 +120,34 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
         currentActivationButtonLabel = new Label(currentButton + currentActivationButton);
 
-        topPaneFirstRow.getChildren().addAll(currentActivationButtonLabel, autoclickerInputButton);
-        topPaneFirstRow.setAlignment(Pos.CENTER);
-        topPaneFirstRow.setSpacing(10);
+        topPaneLeftFirstRow.getChildren().addAll(currentActivationButtonLabel, autoclickerInputButton);
+        topPaneLeftFirstRow.setAlignment(Pos.CENTER);
+        topPaneLeftFirstRow.setSpacing(10);
 
         //CPS
+        topPaneLeftSecondRow = textAndNumInput("1 Click every", "milliseconds", "millis");
 
-        Label pre_CPSText = new Label("1 Click every");
-        Label post_CPSText = new Label("milliseconds");
-        TextField cps = new TextField();
-        cps.setPromptText("Default: " + properties.getProperty("millis"));
+        topPaneLeftVBox.getChildren().addAll(titleAC, topPaneLeftFirstRow, topPaneLeftSecondRow);
+        topPaneLeftVBox.setAlignment(Pos.CENTER);
+        topPaneLeftVBox.setSpacing(7);
 
-        //Must be a number and also maximum 10
-        Pattern pattern = Pattern.compile("\\d{0,10}");
-        TextFormatter<Integer> formatter = new TextFormatter<>(c -> {
-            if (pattern.matcher(c.getControlNewText()).matches() && (c.getControlNewText().isEmpty() || Integer.parseInt(c.getControlNewText()) <= Integer.MAX_VALUE)) {
-                return c;
-            } else {
-                return null;
-            }
-        });
-        cps.setTextFormatter(formatter);
+        //Top pane left stuff stop
 
-        // Save input as variable
-        cps.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals("")) {
-                properties.setProperty("millis", newValue);
-            } else {
-                properties.setProperty("millis", String.valueOf(1));
-            }
-        });
+        //Top pane right stuff start
 
-        topPaneSecondRow.getChildren().addAll(pre_CPSText, cps, post_CPSText);
-        topPaneSecondRow.setAlignment(Pos.CENTER);
-        topPaneSecondRow.setSpacing(5);
+        titleAMM.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        titleAMM.setTextFill(Color.RED);
+        titleAMM.setAlignment(Pos.CENTER);
 
+        topPaneRightThirdRow = textAndNumInput("Move every", "milliseconds", "moveTime");
 
-        topPaneBox.getChildren().addAll(topPaneFirstRow, topPaneSecondRow);
+        topPaneRightVBox.getChildren().addAll(titleAMM, topPaneRightThirdRow);
+        topPaneRightVBox.setAlignment(Pos.CENTER);
+        topPaneRightVBox.setSpacing(7);
+
+        topPaneBox.getChildren().addAll(topPaneLeftVBox, topPaneRightVBox);
         topPaneBox.setAlignment(Pos.CENTER);
-        topPaneBox.setSpacing(7);
-
+        topPaneBox.setSpacing(17.5);
         StackPane topPane = new StackPane(topPaneBox);
 
         //End of topPane, start of bottomPane
@@ -161,7 +169,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         splitPane.getItems().addAll(topPane, bottomPane);
         splitPane.setDividerPosition(0, 0.5);
 
-        Scene scene = new Scene(splitPane, 600, 400);
+        Scene scene = new Scene(splitPane, 610, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -170,6 +178,41 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             Platform.exit();
             System.exit(0);
         });
+    }
+
+
+
+    public HBox textAndNumInput(String pre, String post, String property) {
+        HBox hbox = new HBox();
+        Label preText = new Label(pre);
+        Label postText = new Label(post);
+        TextField textField = new TextField();
+        textField.setPromptText("Default: " + properties.getProperty(property));
+
+        //Must be a number and also maximum 10
+        Pattern pattern = Pattern.compile("\\d{0,10}");
+        TextFormatter<Integer> formatter = new TextFormatter<>(c -> {
+            if (pattern.matcher(c.getControlNewText()).matches() && (c.getControlNewText().isEmpty() || Integer.parseInt(c.getControlNewText()) <= Integer.MAX_VALUE)) {
+                return c;
+            } else {
+                return null;
+            }
+        });
+        textField.setTextFormatter(formatter);
+
+        // Save input as variable
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals("")) {
+                properties.setProperty(property, newValue);
+            } else {
+                properties.setProperty(property, String.valueOf(1));
+            }
+        });
+
+        hbox.getChildren().addAll(preText, textField, postText);
+        hbox.setAlignment(Pos.CENTER);
+        hbox.setSpacing(5);
+        return hbox;
     }
 
 
@@ -198,7 +241,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
             Scene secondScene = new Scene(layout, 450, 250);
             hotspotSettings = new Stage();
 
-            hotspotSettings.setTitle("Hotspot Settings");
+            hotspotSettings.setTitle("Hotspot settings");
             hotspotSettings.setScene(secondScene);
             hotspotSettings.show();
             hotspotSettings.setOnCloseRequest(event -> hotspotSettingsWindowIsActive = false);

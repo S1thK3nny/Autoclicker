@@ -11,6 +11,7 @@ public class PropertySaver extends Properties{
     private static final int DEFAULT_CPS = 5;
     private static final int DEFAULT_ACBUTTON = 3;
     private static final boolean DEFAULT_ISMOUSE = true;
+    private static final int DEFAULT_MOVETIME = 5000;
 
     public static Properties loadProperties() {
         Properties properties = new Properties();
@@ -25,6 +26,7 @@ public class PropertySaver extends Properties{
             properties.setProperty("millis", String.valueOf(DEFAULT_CPS));
             properties.setProperty("acButton", String.valueOf(DEFAULT_ACBUTTON));
             properties.setProperty("isMouse", String.valueOf(DEFAULT_ISMOUSE));
+            properties.setProperty("moveTime", String.valueOf(DEFAULT_MOVETIME));
             saveProperties(properties);
         }
         return properties;
