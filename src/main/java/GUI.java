@@ -41,8 +41,8 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
     Label tempPreButtonLabel;
 
-    private static final ObservableList<String> hotspotObservableList = FXCollections.observableArrayList();
-    private static final ListView<String> hotspotListView = new ListView<>(hotspotObservableList);
+    private static ObservableList<String> hotspotObservableList;
+    private static ListView<String> hotspotListView;
     private final Button hotspotRemoveButton = new Button("Remove");
 
     Stage hotspotSettings;
@@ -79,6 +79,10 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
     public void start(Stage primaryStage) throws NativeHookException {
         start();
         primaryStage.setTitle("S1ths unreliable Auto clicker");
+
+        //VERY IMPORTANT!!! We need to initialize them here, otherwise, the jar will NOT run!
+        hotspotObservableList = FXCollections.observableArrayList();
+        hotspotListView = new ListView<>(hotspotObservableList);
 
         SplitPane splitPane = new SplitPane();
         splitPane.setOrientation(Orientation.VERTICAL);
