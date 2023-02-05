@@ -83,6 +83,7 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         splitPane.setOrientation(Orientation.VERTICAL);
 
         //Top pane stuff start
+
         SplitPane splitPaneTop = new SplitPane();
         splitPaneTop.setOrientation(Orientation.HORIZONTAL);
 
@@ -95,10 +96,11 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         HBox topPaneRightFirstRow = new HBox();
         HBox topPaneRightSecondRow = new HBox();
         HBox topPaneRightThirdRow;
-        HBox topPaneRightFourthRow = new HBox();
+        HBox topPaneRightFourthRow;
         Label titleAMM = new Label("Auto Mouse Mover");
 
         //Top pane stuff stop
+
 
 
         //Top pane left stuff start
@@ -132,14 +134,17 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
         //Top pane left stuff stop
 
+
+
         //Top pane right stuff start
 
         titleAMM.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         titleAMM.setAlignment(Pos.CENTER);
 
         topPaneRightThirdRow = textAndNumInput("Move every", "milliseconds", "moveTime");
+        topPaneRightFourthRow = textAndNumInput("Delay of", "milliseconds between moving", "moveInBetweenTime");
 
-        topPaneRightVBox.getChildren().addAll(titleAMM, topPaneRightThirdRow);
+        topPaneRightVBox.getChildren().addAll(titleAMM, topPaneRightThirdRow, topPaneRightFourthRow);
         topPaneRightVBox.setAlignment(Pos.CENTER);
         topPaneRightVBox.setSpacing(7);
 
@@ -148,7 +153,11 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
         splitPaneTop.getItems().addAll(topPaneLeft, topPaneRight);
 
-        //End of topPane, start of bottomPane
+        //Top pane right stuff stop
+
+
+
+        //Bot pane stuff start
 
         StackPane bottomPane = new StackPane();
         bottomPane.setAlignment(Pos.BOTTOM_RIGHT); //We can safely make this bottom right for the button as the chat area takes up the whole pane
@@ -167,7 +176,11 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         splitPane.getItems().addAll(splitPaneTop, bottomPane);
         splitPane.setDividerPosition(0, 0.35);
 
-        Scene scene = new Scene(splitPane, 610, 575);
+        //Bot pane stuff stop
+
+
+
+        Scene scene = new Scene(splitPane, 750, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
 
