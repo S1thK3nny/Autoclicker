@@ -9,7 +9,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
@@ -84,7 +83,8 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         splitPane.setOrientation(Orientation.VERTICAL);
 
         //Top pane stuff start
-        HBox topPaneBox = new HBox();
+        SplitPane splitPaneTop = new SplitPane();
+        splitPaneTop.setOrientation(Orientation.HORIZONTAL);
 
         VBox topPaneLeftVBox = new VBox();
         HBox topPaneLeftFirstRow = new HBox();
@@ -104,7 +104,6 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         //Top pane left stuff start
 
         titleAC.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        titleAC.setTextFill(Color.BLUE);
         titleAC.setAlignment(Pos.CENTER);
 
         //AC Input button
@@ -136,7 +135,6 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         //Top pane right stuff start
 
         titleAMM.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        titleAMM.setTextFill(Color.RED);
         titleAMM.setAlignment(Pos.CENTER);
 
         topPaneRightThirdRow = textAndNumInput("Move every", "milliseconds", "moveTime");
@@ -145,10 +143,10 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
         topPaneRightVBox.setAlignment(Pos.CENTER);
         topPaneRightVBox.setSpacing(7);
 
-        topPaneBox.getChildren().addAll(topPaneLeftVBox, topPaneRightVBox);
-        topPaneBox.setAlignment(Pos.CENTER);
-        topPaneBox.setSpacing(17.5);
-        StackPane topPane = new StackPane(topPaneBox);
+        StackPane topPaneLeft = new StackPane(topPaneLeftVBox);
+        StackPane topPaneRight = new StackPane(topPaneRightVBox);
+
+        splitPaneTop.getItems().addAll(topPaneLeft, topPaneRight);
 
         //End of topPane, start of bottomPane
 
@@ -166,10 +164,10 @@ public class GUI extends Application implements NativeKeyListener, NativeMouseLi
 
         bottomPane.getChildren().addAll(chatArea, hotspotSettingsButton);
 
-        splitPane.getItems().addAll(topPane, bottomPane);
-        splitPane.setDividerPosition(0, 0.5);
+        splitPane.getItems().addAll(splitPaneTop, bottomPane);
+        splitPane.setDividerPosition(0, 0.35);
 
-        Scene scene = new Scene(splitPane, 610, 400);
+        Scene scene = new Scene(splitPane, 610, 575);
         primaryStage.setScene(scene);
         primaryStage.show();
 
